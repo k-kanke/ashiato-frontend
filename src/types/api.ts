@@ -7,7 +7,6 @@ export interface AuthResponse {
 export interface AuthRequest {
   email: string;
   password: string;
-  username?: string;
 }
 
 export interface ErrorResponse {
@@ -19,5 +18,17 @@ export interface UserProfile {
   username: string;
   email: string;
   comment_on_my_pin: boolean;
+  created_at: string;
+}
+
+export interface Pin {
+  pin_id: string;
+  user_id: string;
+  latitude: number;
+  longitude: number;
+  content_text: string;
+  media_url: string | null;
+  privacy_setting: string;
+  status: string;
   created_at: string;
 }

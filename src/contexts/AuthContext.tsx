@@ -1,36 +1,35 @@
 'use client';
 
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-
-
+import { clearStoredToken, getStoredToken, setStoredToken } from "@/utils/token";
 interface AuthContextType {
   token: string | null;
   login: (jwt: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  isInitializing: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = 'ashiato_jwt';
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // 初期値はLocalStorageから読み込む
   const [token, setToken] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // 初期ロード時にトークンを復元
   useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    setToken(storedToken);
+    setToken(getStoredToken());
+    setIsInitializing(false);
   }, []);
 
   const handleLogin = (jwt: string) => {
-    localStorage.setItem(TOKEN_KEY, jwt);
+    setStoredToken(jwt);
     setToken(jwt);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(TOKEN_KEY);
+    clearStoredToken();
     setToken(null);
   };
 
@@ -39,7 +38,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         token, 
         login: handleLogin, 
         logout: handleLogout, 
-        isAuthenticated: !!token 
+        isAuthenticated: !!token,
+        isInitializing,
     }}>
       {children}
     </AuthContext.Provider>

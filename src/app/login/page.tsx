@@ -25,9 +25,13 @@ export default function LoginPage() {
       
       // 3. メインの地図画面に遷移
       router.push('/map'); 
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 認証失敗やAPIエラー
-      setError(err.message || 'ログインに失敗しました');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('ログインに失敗しました');
+      }
     }
   };
 
