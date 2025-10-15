@@ -63,3 +63,59 @@ export const getPins = async (bounds: BoundsQueryParams): Promise<Pin[]> => {
   const data: GetPinsResponse = await response.json();
   return data.pins;
 };
+
+type CreatePinRequest = {
+  latitude: number;
+  longitude: number;
+  content_text: string;
+  media_url: string | null;
+  privacy_setting: 'public' | 'friends';
+};
+
+interface CreatePinResponse {
+  message: string;
+  pin: Pin;
+}
+
+export const createPin = async (payload: CreatePinRequest): Promise<Pin> => {
+  const token = getStoredToken();
+  if (!token) throw new Error('Authentication required');
+
+  const response = await fetch(`${API_BASE_URL}/pins`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      content_text: payload.content_text,
+      media_url: payload.media_url,
+      privacy_setting: payload.privacy_setting,
+    }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      const error = new Error('Unauthorized');
+      (error as Error & { status?: number }).status = response.status;
+      throw error;
+    }
+
+    let message = `Failed to create pin with status: ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body && typeof body.error === 'string') {
+        message = body.error;
+      }
+    } catch {
+      // ignore JSON parse errors
+    }
+
+    throw new Error(message);
+  }
+
+  const data: CreatePinResponse = await response.json();
+  return data.pin;
+};
