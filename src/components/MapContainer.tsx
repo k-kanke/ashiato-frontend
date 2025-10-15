@@ -1,12 +1,11 @@
-// ashiato-frontend/src/components/MapContainer.tsx
-
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
 import { getPins } from '@/api/pins';
 import { Pin } from '@/types/api'; 
 import { useAuth } from '@/contexts/AuthContext';
+import { darkMinimalPoiStyles } from '@/config/mapStyles';
 
 const containerStyle = {
   width: '100%',
@@ -19,16 +18,20 @@ const center = {
   lng: 139.767125,
 };
 
+const BASE_MAP_OPTIONS: google.maps.MapOptions = {
+  disableDefaultUI: true,
+  styles: darkMinimalPoiStyles,
+};
+
 export default function MapContainer() {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: apiKey ?? '',
   });
-  
   const [pins, setPins] = useState<Pin[]>([]);
   const mapRef = useRef<google.maps.Map | null>(null);
-  const idleListenerRef = useRef<google.maps.MapsEventListener | null>(null);
+  const [mapOptions, setMapOptions] = useState<google.maps.MapOptions>();
   const { logout } = useAuth();
 
   const fetchPinsForBounds = useCallback((mapInstance: google.maps.Map) => {
@@ -68,20 +71,44 @@ export default function MapContainer() {
     mapRef.current = mapInstance;
     // 初期ロード時にもピンを取得
     fetchPinsForBounds(mapInstance);
-    idleListenerRef.current = mapInstance.addListener('idle', () => {
-      if (mapRef.current) {
-        fetchPinsForBounds(mapRef.current);
-      }
-    });
+  }, [fetchPinsForBounds]);
+
+  const onBoundsChanged = useCallback(() => {
+    if (mapRef.current) {
+      fetchPinsForBounds(mapRef.current);
+    }
   }, [fetchPinsForBounds]);
 
   const onUnmount = useCallback(function callback() {
-    if (idleListenerRef.current) {
-      idleListenerRef.current.remove();
-      idleListenerRef.current = null;
-    }
     mapRef.current = null;
   }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    let isActive = true;
+
+    (async () => {
+      try {
+        const { ColorScheme } = await google.maps.importLibrary('core') as google.maps.CoreLibrary;
+        if (!isActive) return;
+
+        setMapOptions({
+          ...BASE_MAP_OPTIONS,
+          colorScheme: ColorScheme.DARK,
+        });
+      } catch (error) {
+        console.error('Failed to load map color scheme:', error);
+        if (!isActive) return;
+
+        setMapOptions({ ...BASE_MAP_OPTIONS });
+      }
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isLoaded]);
 
   if (!apiKey) {
     return <div>Google Maps API key is not configured</div>;
@@ -91,7 +118,7 @@ export default function MapContainer() {
     return <div>Failed to load map</div>;
   }
 
-  if (!isLoaded) return <div>Loading Map...</div>;
+  if (!isLoaded || !mapOptions) return <div>Loading Map...</div>;
 
   return (
     <GoogleMap
@@ -99,8 +126,9 @@ export default function MapContainer() {
       center={center}
       zoom={14}
       onLoad={onLoad}
+      onBoundsChanged={onBoundsChanged}
       onUnmount={onUnmount}
-      options={{ disableDefaultUI: true }}
+      options={mapOptions}
     >
       {/* 取得したピンデータをMarkerとして地図上に描画 */}
       {pins.map(pin => (
