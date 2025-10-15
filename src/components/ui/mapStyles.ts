@@ -1,4 +1,4 @@
-// ashiato-frontend/src/config/mapStyles.ts
+// ashiato-frontend/src/components/ui/mapStyles.ts
 
 // Stylized dark map styling that keeps user pins prominent by hiding most POIs and simplifying colors.
 type MapTypeStyle = google.maps.MapTypeStyle;
