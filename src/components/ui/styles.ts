@@ -4,21 +4,21 @@ export const sheetBackdropStyle: CSSProperties = {
   position: 'fixed',
   inset: 0,
   backgroundColor: 'rgba(0, 0, 0, 0.45)',
-  zIndex: 3,
+  zIndex: 1500,
 };
 
 export const sheetStyle: CSSProperties = {
   position: 'fixed',
   left: 0,
   right: 0,
-  bottom: 0,
+  top: 0,
   backgroundColor: '#1d1d25',
   color: '#f2f2f5',
-  borderTopLeftRadius: '16px',
-  borderTopRightRadius: '16px',
+  borderBottomLeftRadius: '16px',
+  borderBottomRightRadius: '16px',
   padding: '24px',
   boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.35)',
-  zIndex: 4,
+  zIndex: 1501,
 };
 
 export const fieldLabelStyle: CSSProperties = {
@@ -56,7 +56,7 @@ export const tabBarWrapperStyle: CSSProperties = {
   bottom: 0,
   left: 0,
   right: 0,
-  zIndex: 1000,
+  zIndex: 1200,
   borderTop: '1px solid rgba(255, 255, 255, 0.1)',
   background: 'rgba(10, 14, 28, 0.94)',
   backdropFilter: 'blur(14px)',

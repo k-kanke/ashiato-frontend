@@ -42,7 +42,11 @@ export type MapContainerHandle = {
   openCreatePinSheet: () => void;
 };
 
-const MapContainer = forwardRef<MapContainerHandle>((_, ref) => {
+type MapContainerProps = {
+  onThreadOpenChange?: (isOpen: boolean) => void;
+};
+
+const MapContainer = forwardRef<MapContainerHandle, MapContainerProps>(({ onThreadOpenChange }, ref) => {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
@@ -56,6 +60,12 @@ const MapContainer = forwardRef<MapContainerHandle>((_, ref) => {
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
   const [isThreadOpen, setIsThreadOpen] = useState(false);
   const { logout } = useAuth();
+
+  useEffect(() => {
+    if (onThreadOpenChange) {
+      onThreadOpenChange(isThreadOpen && !!selectedPin);
+    }
+  }, [isThreadOpen, selectedPin, onThreadOpenChange]);
 
   const fetchPinsForBounds = useCallback((mapInstance: google.maps.Map) => {
     const bounds = mapInstance.getBounds();

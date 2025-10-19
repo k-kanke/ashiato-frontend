@@ -12,6 +12,7 @@ export default function MapPage() {
   const searchParams = useSearchParams();
   const mapRef = useRef<MapContainerHandle>(null);
   const [shouldOpenCreate, setShouldOpenCreate] = useState(false);
+  const [isThreadActive, setIsThreadActive] = useState(false);
 
   useEffect(() => {
     if (!auth.isInitializing && auth.isAuthenticated) {
@@ -61,9 +62,12 @@ export default function MapPage() {
   return (
     <div style={pageStyle}>
       <div style={mapWrapperStyle}>
-        <MapContainer ref={mapRef} />
+        <MapContainer
+          ref={mapRef}
+          onThreadOpenChange={setIsThreadActive}
+        />
       </div>
-      <TabBar activeTab="map" onCreateClick={handleCreateClick} />
+      {!isThreadActive && <TabBar activeTab="map" onCreateClick={handleCreateClick} />}
     </div>
   );
 }

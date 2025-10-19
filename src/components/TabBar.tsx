@@ -106,7 +106,7 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
   };
 
   const handleActionButtonMouseLeave = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.currentTarget.style.transform = 'translateY(-12px) scale(1)';
+    event.currentTarget.style.transform = 'translateY(-6px) scale(1)';
     event.currentTarget.style.boxShadow = '0 22px 44px rgba(72, 89, 255, 0.55)';
   };
 

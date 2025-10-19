@@ -6,7 +6,7 @@ export const threadOverlayStyle: CSSProperties = {
   position: 'fixed',
   inset: 0,
   background: 'rgba(0, 0, 0, 0.7)',
-  zIndex: 8,
+  zIndex: 2000,
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
