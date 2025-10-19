@@ -3,6 +3,12 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { CSSProperties } from 'react';
+import { FiMap } from 'react-icons/fi';
+import { HiOutlineSearch } from 'react-icons/hi';
+import { FiMessageCircle } from 'react-icons/fi';
+import { FiUser } from 'react-icons/fi';
+import { IoAdd } from 'react-icons/io5';
+import type { IconType } from 'react-icons';
 
 type TabKey = 'map' | 'search' | 'notifications' | 'profile';
 
@@ -26,13 +32,14 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
   const tabs: Array<{
     key: TabKey;
     label: string;
-    icon: string;
+    icon: IconType;
     href: string;
+    iconSize: number;
   }> = [
-    { key: 'map', label: 'map', icon: '🏠', href: '/map' },
-    { key: 'search', label: 'search', icon: '🔍', href: '/users' },
-    { key: 'notifications', label: 'message', icon: '💬', href: '/notifications' },
-    { key: 'profile', label: 'profile', icon: '👤', href: '/profile' },
+    { key: 'map', label: 'map', icon: FiMap, href: '/map', iconSize: 22 },
+    { key: 'search', label: 'search', icon: HiOutlineSearch, href: '/users', iconSize: 23 },
+    { key: 'notifications', label: 'message', icon: FiMessageCircle, href: '/notifications', iconSize: 23 },
+    { key: 'profile', label: 'profile', icon: FiUser, href: '/profile', iconSize: 22 },
   ];
 
   const navWrapperStyle: CSSProperties = {
@@ -88,6 +95,7 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
       boxShadow: isActive ? '0 0 18px rgba(88, 101, 242, 0.35)' : 'none',
       color: isActive ? '#d4dcff' : '#e4e8f7',
       fontSize: '20px',
+      lineHeight: '0',
       transition: 'all 0.2s ease',
     };
 
@@ -118,6 +126,8 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
       boxShadow: '0 2px 6px rgba(240, 80, 110, 0.5)',
     };
 
+    const Icon = tab.icon;
+
     return (
       <Link
         key={tab.key}
@@ -125,7 +135,11 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
         style={linkStyle}
       >
         <span style={iconCircleStyle}>
-          <span>{tab.icon}</span>
+          <Icon
+            size={tab.iconSize}
+            color={isActive ? '#d4dcff' : '#e4e8f7'}
+            style={{ display: 'block' }}
+          />
           {showBadge && (
             <span style={badgeStyle}>
               {messageBadgeCount > 9 ? '9+' : messageBadgeCount}
@@ -151,13 +165,10 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
     height: '64px',
     borderRadius: '50%',
     background: 'linear-gradient(135deg, #7b8cfd, #5967ff)',
-    color: '#ffffff',
-    fontSize: '30px',
-    fontWeight: 600,
     border: 'none',
     boxShadow: '0 22px 44px rgba(72, 89, 255, 0.55)',
     cursor: 'pointer',
-    transform: 'translateY(-12px)',
+    transform: 'translateY(-6px)',
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   };
 
@@ -209,9 +220,9 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
             onBlur={handleActionButtonBlur}
             aria-label="ピンを立てる"
           >
-            ＋
+            <IoAdd size={35} color="#ffffff" />
           </button>
-          <span style={actionLabelStyle}>作成</span>
+          <span style={actionLabelStyle}>pin</span>
           <span style={actionUnderlineStyle} />
         </div>
         {renderTabItem(tabs[2])}
