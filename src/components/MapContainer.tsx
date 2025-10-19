@@ -21,7 +21,7 @@ const containerStyle = {
 };
 
 // 初期表示の中心座標 (東京駅付近を例とする)
-const center = {
+const fallbackCenter = {
   lat: 35.681236,
   lng: 139.767125,
 };
@@ -40,6 +40,7 @@ export default function MapContainer() {
   const [pins, setPins] = useState<Pin[]>([]);
   const mapRef = useRef<google.maps.Map | null>(null);
   const [mapOptions, setMapOptions] = useState<google.maps.MapOptions>();
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(fallbackCenter);
   const [createPinState, setCreatePinState] = useState<CreatePinState>(() => createInitialState());
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
   const [isThreadOpen, setIsThreadOpen] = useState(false);
@@ -118,6 +119,42 @@ export default function MapContainer() {
 
     return () => {
       isActive = false;
+    };
+  }, [isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!navigator.geolocation) {
+      console.warn('Geolocation API is not available in this browser.');
+      return;
+    }
+
+    let isCancelled = false;
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        if (isCancelled) return;
+        const nextCenter: google.maps.LatLngLiteral = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setMapCenter(nextCenter);
+        if (mapRef.current) {
+          mapRef.current.panTo(nextCenter);
+        }
+      },
+      error => {
+        console.error('Failed to acquire current location:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+
+    return () => {
+      isCancelled = true;
     };
   }, [isLoaded]);
 
@@ -252,7 +289,7 @@ export default function MapContainer() {
     <>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={center}
+        center={mapCenter}
         zoom={14}
         onLoad={onLoad}
         onBoundsChanged={onBoundsChanged}
