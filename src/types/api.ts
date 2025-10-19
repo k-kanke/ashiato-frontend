@@ -41,6 +41,7 @@ export interface Comment {
   pin_id: string;
   user_id: string;
   content_text: string;
+  media_url: string | null;
   created_at: string;
 }
 

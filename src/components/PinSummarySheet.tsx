@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React from 'react';
@@ -17,12 +18,12 @@ type PinSummarySheetProps = {
 
 const summarySheetStyle: React.CSSProperties = {
   ...sheetStyle,
-  zIndex: 6,
+  zIndex: 1502,
 };
 
 const summaryBackdropStyle: React.CSSProperties = {
   ...sheetBackdropStyle,
-  zIndex: 5,
+  zIndex: 1501,
 };
 
 const PinSummarySheet: React.FC<PinSummarySheetProps> = ({ pin, onClose, onShowThread }) => {
@@ -40,6 +41,15 @@ const PinSummarySheet: React.FC<PinSummarySheetProps> = ({ pin, onClose, onShowT
         onClick={onClose}
       />
       <div style={summarySheetStyle}>
+        {pin.media_url && (
+          <div style={{ marginBottom: '16px' }}>
+            <img
+              src={pin.media_url}
+              alt="ピンの画像"
+              style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '240px' }}
+            />
+          </div>
+        )}
         <header style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
           <div>
             <h2 style={{ fontSize: '18px', margin: 0 }}>足跡の概要</h2>
@@ -69,7 +79,7 @@ const PinSummarySheet: React.FC<PinSummarySheetProps> = ({ pin, onClose, onShowT
         <section style={{ marginBottom: '20px' }}>
           <label style={fieldLabelStyle}>公開範囲</label>
           <p style={{ margin: 0 }}>
-            {pin.privacy_setting === 'friends' ? 'フレンド限定' : '公開'}
+            {pin.privacy_setting === 'friends' ? 'フレンド限定' : 'public'}
           </p>
         </section>
 
@@ -112,4 +122,3 @@ const PinSummarySheet: React.FC<PinSummarySheetProps> = ({ pin, onClose, onShowT
 };
 
 export default PinSummarySheet;
-

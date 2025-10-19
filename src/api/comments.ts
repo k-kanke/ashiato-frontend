@@ -85,18 +85,28 @@ export const getThread = async (
   return data.comments;
 };
 
-export const postComment = async (pinID: string, contentText: string): Promise<Comment> => {
+type PostCommentPayload = {
+  contentText: string;
+  mediaFile?: File | null;
+};
+
+export const postComment = async (pinID: string, payload: PostCommentPayload): Promise<Comment> => {
   const token = getStoredToken();
   if (!token) throw new Error('Authentication required');
 
-  const response = await fetch(
-    `${API_BASE_URL}/pins/${encodeURIComponent(pinID)}/comments`,
-    {
-      method: 'POST',
-      headers: buildAuthHeaders(token),
-      body: JSON.stringify({ content_text: contentText }),
+  const formData = new FormData();
+  formData.append('content_text', payload.contentText);
+  if (payload.mediaFile) {
+    formData.append('image', payload.mediaFile);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/pins/${encodeURIComponent(pinID)}/comments`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+    body: formData,
+  });
 
   if (!response.ok) {
     await handleResponseError(response);
@@ -107,4 +117,3 @@ export const postComment = async (pinID: string, contentText: string): Promise<C
 };
 
 export { isUnauthorized };
-

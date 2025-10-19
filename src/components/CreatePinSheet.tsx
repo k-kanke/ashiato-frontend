@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { ChangeEvent, FormEvent } from 'react';
@@ -22,6 +23,8 @@ export type CreatePinState = {
   longitude: number | null;
   contentText: string;
   privacySetting: PrivacySetting;
+  mediaFile: File | null;
+  mediaPreview: string | null;
 };
 
 export const createInitialState = (): CreatePinState => ({
@@ -33,6 +36,8 @@ export const createInitialState = (): CreatePinState => ({
   longitude: null,
   contentText: '',
   privacySetting: 'public',
+  mediaFile: null,
+  mediaPreview: null,
 });
 
 type CreatePinSheetProps = {
@@ -41,6 +46,8 @@ type CreatePinSheetProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onContentChange: (value: string) => void;
   onPrivacyChange: (value: PrivacySetting) => void;
+  onImageChange: (file: File | null) => void;
+  onRemoveImage: () => void;
 };
 
 const CreatePinSheet: React.FC<CreatePinSheetProps> = ({
@@ -49,6 +56,8 @@ const CreatePinSheet: React.FC<CreatePinSheetProps> = ({
   onSubmit,
   onContentChange,
   onPrivacyChange,
+  onImageChange,
+  onRemoveImage,
 }) => {
   return (
     <>
@@ -103,6 +112,51 @@ const CreatePinSheet: React.FC<CreatePinSheetProps> = ({
                 onContentChange(event.target.value)
               }
             />
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+            <label style={fieldLabelStyle} htmlFor="pin-image">
+              画像
+            </label>
+            {state.mediaPreview ? (
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={state.mediaPreview}
+                  alt="選択した画像"
+                  style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '240px' }}
+                />
+                <button
+                  type="button"
+                  onClick={onRemoveImage}
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="選択した画像を削除"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <input
+                id="pin-image"
+                type="file"
+                accept="image/*"
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  onImageChange(event.target.files?.[0] ?? null);
+                  event.target.value = '';
+                }}
+                style={inputBaseStyle}
+              />
+            )}
           </div>
 
           <div style={{ marginBottom: '16px' }}>

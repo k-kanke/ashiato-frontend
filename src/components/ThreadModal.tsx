@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { FormEvent, useEffect, useMemo, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Pin, Comment } from '@/types/api';
 import { getThread, postComment } from '@/api/comments';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,8 +29,30 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
   const [formError, setFormError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newCommentMedia, setNewCommentMedia] = useState<File | null>(null);
+  const [newCommentPreview, setNewCommentPreview] = useState<string | null>(null);
 
   const pinID = pin?.pin_id;
+
+  const handleCommentImageChange = useCallback((file: File | null) => {
+    setNewCommentPreview(prev => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return file ? URL.createObjectURL(file) : null;
+    });
+    setNewCommentMedia(file);
+  }, []);
+
+  const clearCommentImage = useCallback(() => {
+    setNewCommentMedia(null);
+    setNewCommentPreview(prev => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
+  }, []);
 
   useEffect(() => {
     if (!isOpen || !pinID) {
@@ -38,6 +61,7 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
         setNewComment('');
         setError(null);
         setFormError(null);
+        clearCommentImage();
       }
       return;
     }
@@ -76,7 +100,13 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
     return () => {
       isCancelled = true;
     };
-  }, [isOpen, pinID, logout]);
+  }, [isOpen, pinID, logout, clearCommentImage]);
+
+  useEffect(() => {
+    return () => {
+      clearCommentImage();
+    };
+  }, [clearCommentImage]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -92,9 +122,13 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
     setIsSubmitting(true);
 
     try {
-      const created = await postComment(pinID, trimmed);
+      const created = await postComment(pinID, {
+        contentText: trimmed,
+        mediaFile: newCommentMedia ?? undefined,
+      });
       setComments(prev => [...prev, created]);
       setNewComment('');
+      clearCommentImage();
     } catch (err) {
       if (err instanceof Error) {
         const status = (err as Error & { status?: number }).status;
@@ -128,6 +162,15 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
         <p style={{ margin: '0 0 8px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
           {comment.content_text}
         </p>
+        {comment.media_url && (
+          <div style={{ marginBottom: '8px' }}>
+            <img
+              src={comment.media_url}
+              alt="コメント画像"
+              style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '260px' }}
+            />
+          </div>
+        )}
         <small style={{ color: '#9a9ab0' }}>
           {new Date(comment.created_at).toLocaleString()}
         </small>
@@ -166,6 +209,13 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
         </header>
 
         <div style={{ padding: '16px 24px 0', borderBottom: '1px solid #2b2b35' }}>
+          {pin.media_url && (
+            <img
+              src={pin.media_url}
+              alt="ピン画像"
+              style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '260px', marginBottom: '12px' }}
+            />
+          )}
           <p style={{ margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{pin.content_text}</p>
         </div>
 
@@ -199,6 +249,61 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
                 marginBottom: '12px',
               }}
             />
+            <div style={{ marginBottom: '12px' }}>
+              <label
+                htmlFor="comment-image"
+                style={{ display: 'block', marginBottom: '6px', color: '#a8a8b3', fontSize: '13px' }}
+              >
+                画像
+              </label>
+              {newCommentPreview ? (
+                <div style={{ position: 'relative' }}>
+                  <img
+                    src={newCommentPreview}
+                    alt="コメント画像プレビュー"
+                    style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '220px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={clearCommentImage}
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      right: '12px',
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      cursor: 'pointer',
+                    }}
+                    aria-label="選択した画像を削除"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <input
+                  id="comment-image"
+                  type="file"
+                  accept="image/*"
+                  onChange={event => {
+                    handleCommentImageChange(event.target.files?.[0] ?? null);
+                    event.target.value = '';
+                  }}
+                  style={{
+                    width: '100%',
+                    borderRadius: '12px',
+                    border: '1px solid #3a3a43',
+                    background: '#23232e',
+                    color: '#f2f2f5',
+                    padding: '10px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              )}
+            </div>
             {formError && (
               <p style={{ color: '#ff6b6b', marginTop: 0, marginBottom: '12px' }}>{formError}</p>
             )}

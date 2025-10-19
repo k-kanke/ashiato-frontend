@@ -61,6 +61,41 @@ const MapContainer = forwardRef<MapContainerHandle, MapContainerProps>(({ onThre
   const [isThreadOpen, setIsThreadOpen] = useState(false);
   const { logout } = useAuth();
 
+  const resetCreatePinState = useCallback(() => {
+    setCreatePinState(prev => {
+      if (prev.mediaPreview) {
+        URL.revokeObjectURL(prev.mediaPreview);
+      }
+      return createInitialState();
+    });
+  }, []);
+
+  const handlePinImageChange = useCallback((file: File | null) => {
+    setCreatePinState(prev => {
+      if (prev.mediaPreview) {
+        URL.revokeObjectURL(prev.mediaPreview);
+      }
+      return {
+        ...prev,
+        mediaFile: file,
+        mediaPreview: file ? URL.createObjectURL(file) : null,
+      };
+    });
+  }, []);
+
+  const handlePinImageRemove = useCallback(() => {
+    setCreatePinState(prev => {
+      if (prev.mediaPreview) {
+        URL.revokeObjectURL(prev.mediaPreview);
+      }
+      return {
+        ...prev,
+        mediaFile: null,
+        mediaPreview: null,
+      };
+    });
+  }, []);
+
   useEffect(() => {
     if (onThreadOpenChange) {
       onThreadOpenChange(isThreadOpen && !!selectedPin);
@@ -272,13 +307,12 @@ const MapContainer = forwardRef<MapContainerHandle, MapContainerProps>(({ onThre
     }));
 
     try {
-      // console.log("debug", createPinState.latitude, createPinState.longitude, createPinState.contentText.trim(), createPinState.privacySetting)
       const newPin = await createPin({
         latitude: createPinState.latitude,
         longitude: createPinState.longitude,
         content_text: createPinState.contentText.trim(),
-        media_url: null,
         privacy_setting: createPinState.privacySetting,
+        imageFile: createPinState.mediaFile ?? undefined,
       });
 
       if (mapRef.current) {
@@ -291,7 +325,7 @@ const MapContainer = forwardRef<MapContainerHandle, MapContainerProps>(({ onThre
         setPins(prev => [newPin, ...prev]);
       }
 
-      setCreatePinState(createInitialState());
+      resetCreatePinState();
     } catch (error) {
       console.error('Failed to create pin:', error);
 
@@ -347,7 +381,7 @@ const MapContainer = forwardRef<MapContainerHandle, MapContainerProps>(({ onThre
       </div>
       <CreatePinSheet
         state={createPinState}
-        onClose={() => setCreatePinState(createInitialState())}
+        onClose={resetCreatePinState}
         onSubmit={handleCreatePinSubmit}
         onContentChange={(value: string) =>
           setCreatePinState(prev => ({
@@ -361,6 +395,8 @@ const MapContainer = forwardRef<MapContainerHandle, MapContainerProps>(({ onThre
             privacySetting: value,
           }))
         }
+        onImageChange={handlePinImageChange}
+        onRemoveImage={handlePinImageRemove}
       />
       <PinSummarySheet
         pin={isThreadOpen ? null : selectedPin}

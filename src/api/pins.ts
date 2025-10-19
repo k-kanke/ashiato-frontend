@@ -68,8 +68,8 @@ type CreatePinRequest = {
   latitude: number;
   longitude: number;
   content_text: string;
-  media_url: string | null;
   privacy_setting: 'public' | 'friends';
+  imageFile?: File | null;
 };
 
 interface CreatePinResponse {
@@ -81,19 +81,21 @@ export const createPin = async (payload: CreatePinRequest): Promise<Pin> => {
   const token = getStoredToken();
   if (!token) throw new Error('Authentication required');
 
+  const formData = new FormData();
+  formData.append('latitude', payload.latitude.toString());
+  formData.append('longitude', payload.longitude.toString());
+  formData.append('content_text', payload.content_text);
+  formData.append('privacy_setting', payload.privacy_setting);
+  if (payload.imageFile) {
+    formData.append('image', payload.imageFile);
+  }
+
   const response = await fetch(`${API_BASE_URL}/pins`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({
-      latitude: payload.latitude,
-      longitude: payload.longitude,
-      content_text: payload.content_text,
-      media_url: payload.media_url,
-      privacy_setting: payload.privacy_setting,
-    }),
+    body: formData,
   });
 
   if (!response.ok) {
