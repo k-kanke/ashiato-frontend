@@ -1,8 +1,15 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect, FormEvent } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  FormEvent,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
-import { useRouter } from 'next/navigation';
 import { createPin, getPins } from '@/api/pins';
 import { Pin } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,13 +19,12 @@ import CreatePinSheet, {
   PrivacySetting,
   createInitialState,
 } from '@/components/CreatePinSheet';
-import { fabStyle, settingsButtonStyle } from '@/components/ui/styles';
 import PinSummarySheet from '@/components/PinSummarySheet';
 import ThreadModal from '@/components/ThreadModal';
 
 const containerStyle = {
   width: '100%',
-  height: '100vh',
+  height: '100%',
 };
 
 // 初期表示の中心座標 (東京駅付近を例とする)
@@ -32,7 +38,11 @@ const BASE_MAP_OPTIONS: google.maps.MapOptions = {
   styles: darkMinimalPoiStyles,
 };
 
-export default function MapContainer() {
+export type MapContainerHandle = {
+  openCreatePinSheet: () => void;
+};
+
+const MapContainer = forwardRef<MapContainerHandle>((_, ref) => {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
@@ -46,7 +56,6 @@ export default function MapContainer() {
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
   const [isThreadOpen, setIsThreadOpen] = useState(false);
   const { logout } = useAuth();
-  const router = useRouter();
 
   const fetchPinsForBounds = useCallback((mapInstance: google.maps.Map) => {
     const bounds = mapInstance.getBounds();
@@ -160,6 +169,63 @@ export default function MapContainer() {
     };
   }, [isLoaded]);
 
+  const openCreatePinSheet = useCallback(() => {
+    if (!navigator.geolocation) {
+      setCreatePinState(prev => ({
+        ...prev,
+        isOpen: true,
+        isLocating: false,
+        error: 'このブラウザでは位置情報を取得できません。',
+      }));
+      return;
+    }
+
+    setCreatePinState(prev => ({
+      ...prev,
+      isOpen: true,
+      isLocating: true,
+      error: null,
+    }));
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+
+        setCreatePinState(prev => ({
+          ...prev,
+          isLocating: false,
+          latitude,
+          longitude,
+        }));
+
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat: latitude, lng: longitude });
+        }
+      },
+      error => {
+        console.error('Geolocation error:', error);
+        setCreatePinState(prev => ({
+          ...prev,
+          isLocating: false,
+          error: '現在地を取得できませんでした。位置情報の権限をご確認ください。',
+        }));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      openCreatePinSheet,
+    }),
+    [openCreatePinSheet],
+  );
+
   if (!apiKey) {
     return <div>Google Maps API key is not configured</div>;
   }
@@ -238,94 +304,37 @@ export default function MapContainer() {
     }
   };
 
-  const handleFabClick = () => {
-    if (!navigator.geolocation) {
-      setCreatePinState(prev => ({
-        ...prev,
-        isOpen: true,
-        isLocating: false,
-        error: 'このブラウザでは位置情報を取得できません。',
-      }));
-      return;
-    }
-
-    setCreatePinState(prev => ({
-      ...prev,
-      isOpen: true,
-      isLocating: true,
-      error: null,
-    }));
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-
-        setCreatePinState(prev => ({
-          ...prev,
-          isLocating: false,
-          latitude,
-          longitude,
-        }));
-
-        if (mapRef.current) {
-          mapRef.current.panTo({ lat: latitude, lng: longitude });
-        }
-      },
-      error => {
-        console.error('Geolocation error:', error);
-        setCreatePinState(prev => ({
-          ...prev,
-          isLocating: false,
-          error: '現在地を取得できませんでした。位置情報の権限をご確認ください。',
-        }));
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      },
-    );
-  };
-
   return (
-    <>
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={mapCenter}
-        zoom={14}
-        onLoad={onLoad}
-        onBoundsChanged={onBoundsChanged}
-        onUnmount={onUnmount}
-        options={mapOptions}
-      >
-        {/* 取得したピンデータをMarkerとして地図上に描画 */}
-        {pins.map(pin => (
-          <MarkerF
-            key={pin.pin_id}
-            position={{ lat: pin.latitude, lng: pin.longitude }}
-            onClick={() => {
-              setSelectedPin(pin);
-              setIsThreadOpen(false);
-            }}
-          />
-        ))}
-      </GoogleMap>
-      <button
-        type="button"
-        style={fabStyle}
-        onClick={handleFabClick}
-        aria-label="ピンを追加する"
-      >
-        +
-      </button>
-      <button
-        type="button"
-        style={settingsButtonStyle}
-        onClick={() => router.push('/settings')}
-        aria-label="設定を開く"
-      >
-        ⚙
-      </button>
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      <div style={{ width: '100%', height: '100%' }}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={mapCenter}
+          zoom={14}
+          onLoad={onLoad}
+          onBoundsChanged={onBoundsChanged}
+          onUnmount={onUnmount}
+          options={mapOptions}
+        >
+          {/* 取得したピンデータをMarkerとして地図上に描画 */}
+          {pins.map(pin => (
+            <MarkerF
+              key={pin.pin_id}
+              position={{ lat: pin.latitude, lng: pin.longitude }}
+              onClick={() => {
+                setSelectedPin(pin);
+                setIsThreadOpen(false);
+              }}
+            />
+          ))}
+        </GoogleMap>
+      </div>
       <CreatePinSheet
         state={createPinState}
         onClose={() => setCreatePinState(createInitialState())}
@@ -362,6 +371,10 @@ export default function MapContainer() {
           setIsThreadOpen(false);
         }}
       />
-    </>
+    </div>
   );
-}
+});
+
+MapContainer.displayName = 'MapContainer';
+
+export default MapContainer;

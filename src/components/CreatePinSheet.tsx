@@ -50,18 +50,16 @@ const CreatePinSheet: React.FC<CreatePinSheetProps> = ({
   onContentChange,
   onPrivacyChange,
 }) => {
-  if (!state.isOpen) {
-    return null;
-  }
-
   return (
     <>
-      <div
-        style={sheetBackdropStyle}
-        role="presentation"
-        onClick={onClose}
-      />
-      <div style={sheetStyle}>
+      {state.isOpen && (
+        <>
+          <div
+            style={sheetBackdropStyle}
+            role="presentation"
+            onClick={onClose}
+          />
+          <div style={sheetStyle}>
         <h2 style={{ fontSize: '18px', marginBottom: '16px' }}>新しい足跡を残す</h2>
         <form onSubmit={onSubmit}>
           <div style={{ marginBottom: '16px' }}>
@@ -162,7 +160,9 @@ const CreatePinSheet: React.FC<CreatePinSheetProps> = ({
             </button>
           </div>
         </form>
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 };

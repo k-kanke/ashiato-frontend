@@ -1,44 +1,5 @@
 import type { CSSProperties } from 'react';
 
-export const fabStyle: CSSProperties = {
-  position: 'fixed',
-  right: '24px',
-  bottom: '24px',
-  width: '56px',
-  height: '56px',
-  borderRadius: '50%',
-  border: 'none',
-  background: '#3f4d9b',
-  color: '#ffffff',
-  fontSize: '32px',
-  lineHeight: '0',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.25)',
-  zIndex: 2,
-};
-
-export const settingsButtonStyle: CSSProperties = {
-  position: 'fixed',
-  left: '24px',
-  bottom: '24px',
-  width: '48px',
-  height: '48px',
-  borderRadius: '50%',
-  border: 'none',
-  background: '#2d2d3a',
-  color: '#ffffff',
-  fontSize: '22px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.25)',
-  zIndex: 2,
-};
-
 export const sheetBackdropStyle: CSSProperties = {
   position: 'fixed',
   inset: 0,

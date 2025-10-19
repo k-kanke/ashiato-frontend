@@ -1,31 +1,69 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import MapContainer from '@/components/MapContainer';
-import { useAuth } from '@/contexts/AuthContext';
+import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import MapContainer, { MapContainerHandle } from '@/components/MapContainer';
+import TabBar from '@/components/TabBar';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export default function MapPage() {
-  const { isAuthenticated, token, isInitializing } = useAuth();
+  const auth = useRequireAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const mapRef = useRef<MapContainerHandle>(null);
+  const [shouldOpenCreate, setShouldOpenCreate] = useState(false);
 
   useEffect(() => {
-    if (!isInitializing && !isAuthenticated) {
-      router.replace('/login');
+    if (!auth.isInitializing && auth.isAuthenticated) {
+      const createParam = searchParams?.get('create');
+      if (createParam === '1') {
+        setShouldOpenCreate(true);
+      }
     }
-  }, [isAuthenticated, isInitializing, router]);
+  }, [auth.isAuthenticated, auth.isInitializing, searchParams]);
 
-  if (isInitializing) {
+  useEffect(() => {
+    if (shouldOpenCreate && mapRef.current) {
+      mapRef.current.openCreatePinSheet();
+      setShouldOpenCreate(false);
+      router.replace('/map');
+    }
+  }, [shouldOpenCreate, router]);
+
+  const handleCreateClick = useCallback(() => {
+    mapRef.current?.openCreatePinSheet();
+  }, []);
+
+  if (auth.isInitializing) {
     return <div className="flex h-screen w-screen items-center justify-center">Loading map...</div>;
   }
 
-  if (!isAuthenticated || !token) {
+  if (!auth.isAuthenticated || !auth.token) {
     return null;
   }
 
+  const pageStyle: CSSProperties = {
+    position: 'relative',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: '#0b101f',
+    overflow: 'hidden',
+  };
+
+  const mapWrapperStyle: CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  };
+
   return (
-    <div className="w-screen h-screen">
-      <MapContainer />
+    <div style={pageStyle}>
+      <div style={mapWrapperStyle}>
+        <MapContainer ref={mapRef} />
+      </div>
+      <TabBar activeTab="map" onCreateClick={handleCreateClick} />
     </div>
   );
 }
