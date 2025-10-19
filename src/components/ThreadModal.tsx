@@ -4,67 +4,20 @@ import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Pin, Comment } from '@/types/api';
 import { getThread, postComment } from '@/api/comments';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  threadOverlayStyle,
+  threadModalStyle,
+  threadHeaderStyle,
+  threadBodyStyle,
+  threadFooterStyle,
+  threadCommentItemStyle,
+  threadButtonBaseStyle,
+} from '@/components/ui/threadStyles';
 
 type ThreadModalProps = {
   isOpen: boolean;
   pin: Pin | null;
   onClose: () => void;
-};
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0, 0, 0, 0.7)',
-  zIndex: 8,
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-};
-
-const modalStyle: React.CSSProperties = {
-  background: '#1c1c24',
-  color: '#f2f2f5',
-  borderRadius: '16px',
-  width: 'min(720px, 94%)',
-  maxHeight: '92vh',
-  display: 'flex',
-  flexDirection: 'column',
-  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5)',
-};
-
-const headerStyle: React.CSSProperties = {
-  padding: '20px 24px',
-  borderBottom: '1px solid #2b2b35',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-};
-
-const bodyStyle: React.CSSProperties = {
-  padding: '20px 24px',
-  overflowY: 'auto',
-  flex: 1,
-};
-
-const footerStyle: React.CSSProperties = {
-  padding: '18px 24px 24px',
-  borderTop: '1px solid #2b2b35',
-};
-
-const commentItemStyle: React.CSSProperties = {
-  background: '#23232e',
-  borderRadius: '12px',
-  padding: '12px 16px',
-  marginBottom: '12px',
-  border: '1px solid #2f2f3a',
-};
-
-const buttonBase: React.CSSProperties = {
-  padding: '10px 16px',
-  borderRadius: '10px',
-  border: 'none',
-  cursor: 'pointer',
-  fontSize: '14px',
 };
 
 const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
@@ -171,7 +124,7 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
     }
 
     return comments.map(comment => (
-      <div key={comment.comment_id} style={commentItemStyle}>
+      <div key={comment.comment_id} style={threadCommentItemStyle}>
         <p style={{ margin: '0 0 8px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
           {comment.content_text}
         </p>
@@ -187,9 +140,9 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
   }
 
   return (
-    <div style={overlayStyle} role="dialog" aria-modal="true">
-      <div style={modalStyle}>
-        <header style={headerStyle}>
+    <div style={threadOverlayStyle} role="dialog" aria-modal="true">
+      <div style={threadModalStyle}>
+        <header style={threadHeaderStyle}>
           <div>
             <h2 style={{ margin: 0, fontSize: '18px' }}>スレッド</h2>
             <p style={{ margin: '4px 0 0', color: '#9a9ab0', fontSize: '13px' }}>
@@ -200,7 +153,7 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
             type="button"
             onClick={onClose}
             style={{
-              ...buttonBase,
+              ...threadButtonBaseStyle,
               background: 'transparent',
               color: '#a8a8b3',
               padding: '6px 12px',
@@ -216,9 +169,9 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
           <p style={{ margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{pin.content_text}</p>
         </div>
 
-        <main style={bodyStyle}>{commentList}</main>
+        <main style={threadBodyStyle}>{commentList}</main>
 
-        <footer style={footerStyle}>
+        <footer style={threadFooterStyle}>
           <form onSubmit={handleSubmit}>
             <label
               htmlFor="new-comment"
@@ -254,7 +207,7 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
                 type="button"
                 onClick={onClose}
                 style={{
-                  ...buttonBase,
+                  ...threadButtonBaseStyle,
                   background: '#2c2c36',
                   color: '#f2f2f5',
                 }}
@@ -265,7 +218,7 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
                 type="submit"
                 disabled={isSubmitting}
                 style={{
-                  ...buttonBase,
+                  ...threadButtonBaseStyle,
                   background: isSubmitting ? '#4b4b5a' : '#4654c9',
                   color: '#ffffff',
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
@@ -282,4 +235,3 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
 };
 
 export default ThreadModal;
-
