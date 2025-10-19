@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect, FormEvent } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
+import { useRouter } from 'next/navigation';
 import { createPin, getPins } from '@/api/pins';
 import { Pin } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +12,7 @@ import CreatePinSheet, {
   PrivacySetting,
   createInitialState,
 } from '@/components/CreatePinSheet';
-import { fabStyle } from '@/components/ui/styles';
+import { fabStyle, settingsButtonStyle } from '@/components/ui/styles';
 import PinSummarySheet from '@/components/PinSummarySheet';
 import ThreadModal from '@/components/ThreadModal';
 
@@ -45,6 +46,7 @@ export default function MapContainer() {
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
   const [isThreadOpen, setIsThreadOpen] = useState(false);
   const { logout } = useAuth();
+  const router = useRouter();
 
   const fetchPinsForBounds = useCallback((mapInstance: google.maps.Map) => {
     const bounds = mapInstance.getBounds();
@@ -315,6 +317,14 @@ export default function MapContainer() {
         aria-label="ピンを追加する"
       >
         +
+      </button>
+      <button
+        type="button"
+        style={settingsButtonStyle}
+        onClick={() => router.push('/settings')}
+        aria-label="設定を開く"
+      >
+        ⚙
       </button>
       <CreatePinSheet
         state={createPinState}

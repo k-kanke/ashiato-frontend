@@ -18,6 +18,9 @@ export interface UserProfile {
   username: string;
   email: string;
   comment_on_my_pin: boolean;
+  friend_new_pin: boolean;
+  friend_request_received: boolean;
+  friend_request_accepted: boolean;
   created_at: string;
 }
 
@@ -39,4 +42,16 @@ export interface Comment {
   user_id: string;
   content_text: string;
   created_at: string;
+}
+
+export interface UpdateUserSettingsPayload {
+  comment_on_my_pin: boolean;
+  friend_new_pin: boolean;
+  friend_request_received: boolean;
+  friend_request_accepted: boolean;
+}
+
+export interface UpdateUserSettingsResponse {
+  message: string;
+  profile: UserProfile;
 }
