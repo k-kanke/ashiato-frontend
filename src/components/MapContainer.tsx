@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect, FormEvent } from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
 import { createPin, getPins } from '@/api/pins';
-import { Pin } from '@/types/api'; 
+import { Pin } from '@/types/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { darkMinimalPoiStyles } from '@/components/ui/mapStyles';
 import CreatePinSheet, {
@@ -12,6 +12,8 @@ import CreatePinSheet, {
   createInitialState,
 } from '@/components/CreatePinSheet';
 import { fabStyle } from '@/components/ui/styles';
+import PinSummarySheet from '@/components/PinSummarySheet';
+import ThreadModal from '@/components/ThreadModal';
 
 const containerStyle = {
   width: '100%',
@@ -39,6 +41,8 @@ export default function MapContainer() {
   const mapRef = useRef<google.maps.Map | null>(null);
   const [mapOptions, setMapOptions] = useState<google.maps.MapOptions>();
   const [createPinState, setCreatePinState] = useState<CreatePinState>(() => createInitialState());
+  const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
+  const [isThreadOpen, setIsThreadOpen] = useState(false);
   const { logout } = useAuth();
 
   const fetchPinsForBounds = useCallback((mapInstance: google.maps.Map) => {
@@ -260,7 +264,10 @@ export default function MapContainer() {
           <MarkerF
             key={pin.pin_id}
             position={{ lat: pin.latitude, lng: pin.longitude }}
-            onClick={() => alert(`Pin Content: ${pin.content_text}`)}
+            onClick={() => {
+              setSelectedPin(pin);
+              setIsThreadOpen(false);
+            }}
           />
         ))}
       </GoogleMap>
@@ -288,6 +295,25 @@ export default function MapContainer() {
             privacySetting: value,
           }))
         }
+      />
+      <PinSummarySheet
+        pin={isThreadOpen ? null : selectedPin}
+        onClose={() => {
+          setSelectedPin(null);
+          setIsThreadOpen(false);
+        }}
+        onShowThread={() => {
+          if (selectedPin) {
+            setIsThreadOpen(true);
+          }
+        }}
+      />
+      <ThreadModal
+        pin={selectedPin}
+        isOpen={isThreadOpen && !!selectedPin}
+        onClose={() => {
+          setIsThreadOpen(false);
+        }}
       />
     </>
   );

@@ -32,3 +32,11 @@ export interface Pin {
   status: string;
   created_at: string;
 }
+
+export interface Comment {
+  comment_id: string;
+  pin_id: string;
+  user_id: string;
+  content_text: string;
+  created_at: string;
+}
