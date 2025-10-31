@@ -1,4 +1,9 @@
-import { AuthRequest, AuthResponse, ErrorResponse } from "@/types/api";
+import {
+  AuthResponse,
+  ErrorResponse,
+  LoginRequest,
+  RegisterRequest,
+} from '@/types/api';
 
 const API_BASE_URL = 'http://localhost:8080/v1/auth';
 
@@ -21,11 +26,11 @@ const fetchApi = async <T>(url: string, method: string, data?: object): Promise<
 };
 
 // POST /v1/auth/register
-export const register = (data: AuthRequest): Promise<AuthResponse> => {
+export const register = (data: RegisterRequest): Promise<AuthResponse> => {
   return fetchApi<AuthResponse>(`${API_BASE_URL}/register`, 'POST', data);
 };
 
 // POST /v1/auth/login
-export const login = (data: AuthRequest): Promise<AuthResponse> => {
+export const login = (data: LoginRequest): Promise<AuthResponse> => {
   return fetchApi<AuthResponse>(`${API_BASE_URL}/login`, 'POST', data);
 };
