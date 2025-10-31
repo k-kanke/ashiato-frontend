@@ -13,6 +13,27 @@ export interface RegisterRequest extends LoginRequest {
   username: string;
 }
 
+export type FriendshipStatus =
+  | 'none'
+  | 'friends'
+  | 'pending_sent'
+  | 'pending_received';
+
+export type RawFriendshipStatus = FriendshipStatus | 'pending';
+
+export interface FriendSummary {
+  user_id: string;
+  username: string;
+  profile_image_url?: string | null;
+}
+
+export interface UserSearchItem {
+  user_id: string;
+  username: string;
+  profile_image_url?: string | null;
+  friendship_status: RawFriendshipStatus;
+}
+
 export interface ErrorResponse {
   error: string;
 }

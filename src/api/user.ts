@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  UserSearchItem,
   UpdateUserSettingsPayload,
   UpdateUserSettingsResponse,
   UserProfile,
@@ -68,3 +69,33 @@ export const updateUserSettings = async (
   return data;
 };
 
+type SearchUsersResponse = {
+  users: UserSearchItem[];
+};
+
+export const searchUsers = async (query: string, limit?: number): Promise<UserSearchItem[]> => {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const token = getStoredToken();
+  if (!token) throw new Error('Authentication required');
+
+  const params = new URLSearchParams({ q: trimmed });
+  if (limit && limit > 0) {
+    params.append('limit', limit.toString());
+  }
+
+  const response = await fetch(`${API_BASE_URL}/users/search?${params.toString()}`, {
+    method: 'GET',
+    headers: buildAuthHeaders(token),
+  });
+
+  if (!response.ok) {
+    await handleErrorResponse(response);
+  }
+
+  const data: SearchUsersResponse = await response.json();
+  return data.users;
+};
