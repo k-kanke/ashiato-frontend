@@ -21,6 +21,7 @@ export const threadModalStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5)',
+  position: 'relative',
 };
 
 export const threadHeaderStyle: CSSProperties = {
@@ -42,6 +43,24 @@ export const threadFooterStyle: CSSProperties = {
   borderTop: '1px solid #2b2b35',
 };
 
+export const threadFabStyle: CSSProperties = {
+  position: 'absolute',
+  bottom: '24px',
+  right: '24px',
+  width: '52px',
+  height: '52px',
+  borderRadius: '50%',
+  backgroundColor: '#4654c9',
+  color: '#fff',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '26px',
+  border: 'none',
+  cursor: 'pointer',
+  boxShadow: '0 12px 24px rgba(0, 0, 0, 0.45)',
+};
+
 export const threadCommentItemStyle: CSSProperties = {
   background: '#23232e',
   borderRadius: '12px',
@@ -56,4 +75,27 @@ export const threadButtonBaseStyle: CSSProperties = {
   border: 'none',
   cursor: 'pointer',
   fontSize: '14px',
+};
+
+export const threadComposerContainerStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+};
+
+export const threadComposerActionsStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '12px',
+};
+
+export const threadIconButtonStyle: CSSProperties = {
+  background: '#2d2d38',
+  borderRadius: '10px',
+  border: '1px solid #3a3a45',
+  color: '#f2f2f5',
+  padding: '10px 12px',
+  cursor: 'pointer',
+  fontSize: '16px',
 };

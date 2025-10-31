@@ -1,7 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pin, Comment } from '@/types/api';
 import { getThread, postComment } from '@/api/comments';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +20,10 @@ import {
   threadFooterStyle,
   threadCommentItemStyle,
   threadButtonBaseStyle,
+  threadFabStyle,
+  threadComposerContainerStyle,
+  threadComposerActionsStyle,
+  threadIconButtonStyle,
 } from '@/components/ui/threadStyles';
 
 type ThreadModalProps = {
@@ -31,6 +42,8 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newCommentMedia, setNewCommentMedia] = useState<File | null>(null);
   const [newCommentPreview, setNewCommentPreview] = useState<string | null>(null);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const pinID = pin?.pin_id;
 
@@ -54,17 +67,24 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
     });
   }, []);
 
+  const handleComposerClose = useCallback(() => {
+    setIsComposerOpen(false);
+    setFormError(null);
+    setNewComment('');
+    clearCommentImage();
+  }, [clearCommentImage]);
+
   useEffect(() => {
     if (!isOpen || !pinID) {
       if (!isOpen) {
         setComments([]);
-        setNewComment('');
         setError(null);
-        setFormError(null);
-        clearCommentImage();
+        handleComposerClose();
       }
       return;
     }
+
+    handleComposerClose();
 
     let isCancelled = false;
 
@@ -100,13 +120,22 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
     return () => {
       isCancelled = true;
     };
-  }, [isOpen, pinID, logout, clearCommentImage]);
+  }, [isOpen, pinID, logout, handleComposerClose]);
 
   useEffect(() => {
     return () => {
       clearCommentImage();
     };
   }, [clearCommentImage]);
+
+  const handleComposerOpen = useCallback(() => {
+    setIsComposerOpen(true);
+    setFormError(null);
+  }, []);
+
+  const handleOpenFilePicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -127,8 +156,7 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
         mediaFile: newCommentMedia ?? undefined,
       });
       setComments(prev => [...prev, created]);
-      setNewComment('');
-      clearCommentImage();
+      handleComposerClose();
     } catch (err) {
       if (err instanceof Error) {
         const status = (err as Error & { status?: number }).status;
@@ -157,26 +185,58 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
       return <p>まだコメントはありません。最初の足跡を残しましょう。</p>;
     }
 
-    return comments.map(comment => (
-      <div key={comment.comment_id} style={threadCommentItemStyle}>
-        <p style={{ margin: '0 0 8px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-          {comment.content_text}
-        </p>
-        {comment.media_url && (
-          <div style={{ marginBottom: '8px' }}>
-            <img
-              src={comment.media_url}
-              alt="コメント画像"
-              style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '260px' }}
-            />
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {comments.map(comment => (
+          <div key={comment.comment_id} style={threadCommentItemStyle}>
+            <p style={{ margin: '0 0 8px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {comment.content_text}
+            </p>
+            {comment.media_url && (
+              <div style={{ marginBottom: '8px' }}>
+                <img
+                  src={comment.media_url}
+                  alt="コメント画像"
+                  style={{
+                    width: '100%',
+                    borderRadius: '12px',
+                    objectFit: 'cover',
+                    maxHeight: '260px',
+                  }}
+                />
+              </div>
+            )}
+            <small style={{ color: '#9a9ab0' }}>
+              {new Date(comment.created_at).toLocaleString()}
+            </small>
           </div>
-        )}
-        <small style={{ color: '#9a9ab0' }}>
-          {new Date(comment.created_at).toLocaleString()}
-        </small>
+        ))}
       </div>
-    ));
+    );
   }, [comments, error, isLoading]);
+
+  const pinDetails = useMemo(() => {
+    if (!pin) return null;
+
+    return (
+      <section style={{ marginBottom: '20px' }}>
+        {pin.media_url && (
+          <img
+            src={pin.media_url}
+            alt="ピン画像"
+            style={{
+              width: '100%',
+              borderRadius: '12px',
+              objectFit: 'cover',
+              maxHeight: '260px',
+              marginBottom: '12px',
+            }}
+          />
+        )}
+        <p style={{ margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{pin.content_text}</p>
+      </section>
+    );
+  }, [pin]);
 
   if (!isOpen || !pin) {
     return null;
@@ -194,7 +254,10 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              onClose();
+              handleComposerClose();
+            }}
             style={{
               ...threadButtonBaseStyle,
               background: 'transparent',
@@ -208,132 +271,135 @@ const ThreadModal: React.FC<ThreadModalProps> = ({ isOpen, pin, onClose }) => {
           </button>
         </header>
 
-        <div style={{ padding: '16px 24px 0', borderBottom: '1px solid #2b2b35' }}>
-          {pin.media_url && (
-            <img
-              src={pin.media_url}
-              alt="ピン画像"
-              style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '260px', marginBottom: '12px' }}
-            />
-          )}
-          <p style={{ margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{pin.content_text}</p>
-        </div>
+        <main style={threadBodyStyle}>
+          {pinDetails}
+          {commentList}
+        </main>
 
-        <main style={threadBodyStyle}>{commentList}</main>
-
-        <footer style={threadFooterStyle}>
-          <form onSubmit={handleSubmit}>
-            <label
-              htmlFor="new-comment"
-              style={{ display: 'block', marginBottom: '8px', color: '#a8a8b3', fontSize: '13px' }}
-            >
-              新しいコメント
-            </label>
-            <textarea
-              id="new-comment"
-              value={newComment}
-              onChange={event => {
-                setNewComment(event.target.value);
-                if (formError) setFormError(null);
-              }}
-              placeholder="感じたことを記録しよう"
-              style={{
-                width: '100%',
-                minHeight: '96px',
-                borderRadius: '12px',
-                border: '1px solid #3a3a43',
-                background: '#23232e',
-                color: '#f2f2f5',
-                padding: '12px 14px',
-                boxSizing: 'border-box',
-                marginBottom: '12px',
-              }}
-            />
-            <div style={{ marginBottom: '12px' }}>
-              <label
-                htmlFor="comment-image"
-                style={{ display: 'block', marginBottom: '6px', color: '#a8a8b3', fontSize: '13px' }}
-              >
-                画像
-              </label>
-              {newCommentPreview ? (
+        {isComposerOpen && (
+          <footer style={threadFooterStyle}>
+            <form onSubmit={handleSubmit} style={threadComposerContainerStyle}>
+              <textarea
+                id="new-comment"
+                value={newComment}
+                onChange={event => {
+                  setNewComment(event.target.value);
+                  if (formError) setFormError(null);
+                }}
+                placeholder="感じたことを記録しよう"
+                style={{
+                  width: '100%',
+                  minHeight: '96px',
+                  borderRadius: '12px',
+                  border: '1px solid #2f2f3a',
+                  background: '#1d1d27',
+                  color: '#f2f2f5',
+                  padding: '12px',
+                  fontSize: '14px',
+                  resize: 'vertical',
+                }}
+              />
+              {newCommentPreview && (
                 <div style={{ position: 'relative' }}>
                   <img
                     src={newCommentPreview}
-                    alt="コメント画像プレビュー"
-                    style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', maxHeight: '220px' }}
+                    alt="コメント画像のプレビュー"
+                    style={{
+                      width: '100%',
+                      borderRadius: '12px',
+                      objectFit: 'cover',
+                      maxHeight: '220px',
+                    }}
                   />
                   <button
                     type="button"
                     onClick={clearCommentImage}
                     style={{
                       position: 'absolute',
-                      top: '12px',
-                      right: '12px',
+                      top: '8px',
+                      right: '8px',
                       background: 'rgba(0, 0, 0, 0.6)',
                       color: '#fff',
                       border: 'none',
                       borderRadius: '50%',
-                      width: '32px',
-                      height: '32px',
+                      width: '28px',
+                      height: '28px',
                       cursor: 'pointer',
                     }}
-                    aria-label="選択した画像を削除"
+                    aria-label="コメント画像を削除"
                   >
                     ×
                   </button>
                 </div>
-              ) : (
-                <input
-                  id="comment-image"
-                  type="file"
-                  accept="image/*"
-                  onChange={event => {
-                    handleCommentImageChange(event.target.files?.[0] ?? null);
-                    event.target.value = '';
-                  }}
-                  style={{
-                    width: '100%',
-                    borderRadius: '12px',
-                    border: '1px solid #3a3a43',
-                    background: '#23232e',
-                    color: '#f2f2f5',
-                    padding: '10px',
-                    boxSizing: 'border-box',
-                  }}
-                />
               )}
-            </div>
-            {formError && (
-              <p style={{ color: '#ff6b6b', marginTop: 0, marginBottom: '12px' }}>{formError}</p>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={onClose}
-                style={{
-                  ...threadButtonBaseStyle,
-                  background: '#2c2c36',
-                  color: '#f2f2f5',
-                }}
-              >
-                閉じる
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                style={{
-                  ...threadButtonBaseStyle,
-                  background: isSubmitting ? '#4b4b5a' : '#4654c9',
-                  color: '#ffffff',
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {isSubmitting ? '送信中…' : 'コメントする'}
-              </button>
-            </div>
-          </form>
-        </footer>
+              {formError && (
+                <p style={{ margin: 0, color: '#ff6b6b', fontSize: '13px' }} role="alert">
+                  {formError}
+                </p>
+              )}
+              <div style={threadComposerActionsStyle}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={handleOpenFilePicker}
+                    style={threadIconButtonStyle}
+                    aria-label="画像を選択"
+                    disabled={isSubmitting}
+                  >
+                    🖼️
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={event => {
+                      handleCommentImageChange(event.target.files?.[0] ?? null);
+                      event.target.value = '';
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={handleComposerClose}
+                    style={{
+                      ...threadButtonBaseStyle,
+                      background: '#2a2a35',
+                      color: '#c7c7d6',
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      ...threadButtonBaseStyle,
+                      background: isSubmitting ? '#4e4e58' : '#4857c4',
+                      color: '#fff',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? '投稿中…' : '投稿する'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </footer>
+        )}
+
+        {!isComposerOpen && (
+          <button
+            type="button"
+            style={threadFabStyle}
+            onClick={handleComposerOpen}
+            aria-label="コメントを作成"
+          >
+            +
+          </button>
+        )}
       </div>
     </div>
   );
