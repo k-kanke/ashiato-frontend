@@ -50,7 +50,7 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
   }> = [
     { key: 'map', label: 'map', icon: FiMap, href: '/map', iconSize: 22 },
     { key: 'search', label: 'search', icon: HiOutlineSearch, href: '/users', iconSize: 23 },
-    { key: 'notifications', label: 'message', icon: FiMessageCircle, href: '/notifications', iconSize: 23 },
+    { key: 'notifications', label: 'mail', icon: FiMessageCircle, href: '/notifications', iconSize: 23 },
     { key: 'profile', label: 'profile', icon: FiUser, href: '/profile', iconSize: 22 },
   ];
 
