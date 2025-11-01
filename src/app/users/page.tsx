@@ -8,6 +8,16 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useAuth } from '@/contexts/AuthContext';
 import { searchUsers } from '@/api/user';
 import { acceptFriend, requestFriend } from '@/api/friends';
+import PageBackground from '@/components/ui/PageBackground';
+import {
+  glassCardClass,
+  glassInsetCardClass,
+  headlineDescriptionClass,
+  headlineLabelClass,
+  headlineTitleClass,
+  pageContentWrapperClass,
+  subduedTextClass,
+} from '@/components/ui/pageStyles';
 import type {
   FriendshipStatus,
   UserSearchItem as RawUserSearchItem,
@@ -301,94 +311,117 @@ const UsersPage = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-[#05070f] pb-28 text-slate-100">
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0b101f] via-[#151b36] to-[#05070f]"
-        aria-hidden
-      />
-      <div className="pointer-events-none absolute -left-32 top-16 h-64 w-64 rounded-full bg-[#4654c9]/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-24 h-72 w-72 rounded-full bg-[#23a6d5]/15 blur-3xl" />
-
-      {toast && (
-        <div className="absolute inset-x-0 top-6 flex justify-center px-4">
-          <div
-            className={`w-full max-w-md rounded-2xl border px-4 py-3 text-sm shadow-lg backdrop-blur ${
-              toast.type === 'success'
-                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100'
-                : 'border-red-500/30 bg-red-500/10 text-red-100'
-            }`}
-            role="status"
-          >
-            {toast.message}
-          </div>
-        </div>
-      )}
-
-      <main className="relative z-10 flex flex-1 flex-col items-center px-6 pt-16">
-        <section className="w-full max-w-xl space-y-8">
-          <header className="space-y-3 text-center">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/40">explore</p>
-            <h1 className="text-3xl font-semibold text-white">フレンドを見つける</h1>
-            <p className="text-sm text-white/60">
-              ユーザー名またはメールアドレスの一部を入力すると、候補が表示されます。
-            </p>
-          </header>
-
-          <div className="space-y-3">
-            <div className="relative">
-              <input
-                type="search"
-                value={query}
-                onChange={event => setQuery(event.target.value)}
-                placeholder="2文字以上を入力してください"
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white placeholder-white/35 outline-none transition focus:border-[#6f7dff] focus:ring-2 focus:ring-[#6f7dff]/40"
-              />
-              {isSearching && (
-                <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs text-white/50">
-                  検索中…
-                </span>
-              )}
+    <>
+      <PageBackground className="pb-24">
+        {toast && (
+          <div className="absolute inset-x-0 top-6 z-20 flex justify-center px-4">
+            <div
+              className={`w-full max-w-md rounded-2xl border px-4 py-3 text-sm shadow-lg backdrop-blur ${
+                toast.type === 'success'
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100'
+                  : 'border-red-500/30 bg-red-500/10 text-red-100'
+              }`}
+              role="status"
+            >
+              {toast.message}
             </div>
-            {isKeywordTooShort && (
-              <p className="text-xs text-white/50">検索には2文字以上入力してください。</p>
-            )}
-            {searchError && !isKeywordTooShort && (
-              <p className="text-xs text-red-300">{searchError}</p>
-            )}
           </div>
+        )}
 
-          <div className="space-y-4">
-            {trimmedQuery.length >= MIN_QUERY_LENGTH && results.length === 0 && !isSearching && !searchError && (
-              <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-center text-sm text-white/60">
-                該当するユーザーが見つかりませんでした。
+        <main className="flex-1">
+          <div className={pageContentWrapperClass}>
+            <header className="space-y-3 text-center sm:text-left">
+              <p className={headlineLabelClass}>discover</p>
+              <h1 className={headlineTitleClass}>フレンドを見つける</h1>
+              <p className={headlineDescriptionClass}>
+                ユーザー名またはメールアドレスの一部を入力して、つながりたい相手を探しましょう。
               </p>
-            )}
+            </header>
 
-            {results.map(user => (
-              <div
-                key={user.user_id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 shadow-[0_25px_80px_rgba(0,0,0,0.3)] backdrop-blur-xl"
-              >
-                <div className="flex items-center gap-4">
-                  {renderAvatar(user)}
-                  <div>
-                    <p className="text-base font-semibold text-white">{user.username}</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      {renderStatusBadge(
-                        user.friendship_status,
-                      )}
-                    </div>
-                  </div>
+            <section className={glassCardClass}>
+              <div className="space-y-3">
+                <div className={`${glassInsetCardClass} relative`}>
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={event => setQuery(event.target.value)}
+                    placeholder="2文字以上を入力してください"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white placeholder-white/35 outline-none transition focus:border-[#6f7dff] focus:ring-2 focus:ring-[#6f7dff]/40"
+                  />
+                  {isSearching && (
+                    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs text-white/50">
+                      検索中…
+                    </span>
+                  )}
                 </div>
-                {renderActionButton(user)}
+                {isKeywordTooShort && (
+                  <p className="text-xs text-white/55">検索には2文字以上入力してください。</p>
+                )}
+                {searchError && !isKeywordTooShort && (
+                  <p className="text-xs text-red-300">{searchError}</p>
+                )}
               </div>
-            ))}
+            </section>
+
+            <section className={glassCardClass}>
+              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">検索結果</h2>
+                  <p className={subduedTextClass}>
+                    {trimmedQuery.length >= MIN_QUERY_LENGTH
+                      ? `「${trimmedQuery}」の候補が表示されます。`
+                      : '検索キーワードを入力してください。'}
+                  </p>
+                </div>
+                {trimmedQuery.length >= MIN_QUERY_LENGTH && (
+                  <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-white/60">
+                    {results.length} 件
+                  </span>
+                )}
+              </div>
+
+              {trimmedQuery.length < MIN_QUERY_LENGTH ? (
+                <div className={`${glassInsetCardClass} text-center`}>
+                  <p className={subduedTextClass}>キーワードを2文字以上入力すると候補が表示されます。</p>
+                </div>
+              ) : isSearching ? (
+                <div className={`${glassInsetCardClass} text-center`}>
+                  <p className={subduedTextClass}>ユーザーを検索中です…</p>
+                </div>
+              ) : searchError ? (
+                <div className={`${glassInsetCardClass} border border-red-500/30 bg-red-500/10 text-center text-red-100`}>
+                  <p className="text-sm">{searchError}</p>
+                </div>
+              ) : results.length === 0 ? (
+                <div className={`${glassInsetCardClass} text-center`}>
+                  <p className={subduedTextClass}>該当するユーザーが見つかりませんでした。</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {results.map(user => (
+                    <div
+                      key={user.user_id}
+                      className={`${glassInsetCardClass} flex items-center justify-between gap-4 border border-white/12`}
+                    >
+                      <div className="flex items-center gap-4">
+                        {renderAvatar(user)}
+                        <div>
+                          <p className="text-base font-semibold text-white">{user.username}</p>
+                          <div className="mt-1 flex items-center gap-2">{renderStatusBadge(user.friendship_status)}</div>
+                        </div>
+                      </div>
+                      {renderActionButton(user)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
-        </section>
-      </main>
+        </main>
+      </PageBackground>
 
       <TabBar activeTab="search" onCreateClick={handleCreateClick} />
-    </div>
+    </>
   );
 };
 

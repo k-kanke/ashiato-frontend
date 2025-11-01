@@ -69,6 +69,7 @@ export const tabBarInnerStyle: CSSProperties = {
   justifyContent: 'space-evenly',
   height: '96px',
   maxWidth: '960px',
+  width: '100%',
   margin: '0 auto',
   padding: '0 24px 16px',
   boxSizing: 'border-box',
@@ -141,6 +142,9 @@ export const tabActionButtonStyle: CSSProperties = {
   cursor: 'pointer',
   transform: 'translateY(-6px)',
   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 };
 
 export const tabActionLabelStyle: CSSProperties = {

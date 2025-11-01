@@ -1,6 +1,6 @@
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
-// import './globals.css'; // グローバルスタイルのインポート
+import './globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
