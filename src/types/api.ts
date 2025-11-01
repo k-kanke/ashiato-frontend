@@ -70,6 +70,17 @@ export interface Comment {
   created_at: string;
 }
 
+export interface Notification {
+  notification_id: string;
+  type: string;
+  actor_user_id?: string | null;
+  actor_username?: string | null;
+  actor_profile_image_url?: string | null;
+  related_entity_id?: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
 export interface UpdateUserSettingsPayload {
   comment_on_my_pin: boolean;
   friend_new_pin: boolean;

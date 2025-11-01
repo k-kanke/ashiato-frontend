@@ -21,6 +21,7 @@ import {
   tabLinkStyleBase,
   tabUnderlineStyleBase,
 } from '@/components/ui/styles';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 type TabKey = 'map' | 'search' | 'notifications' | 'profile';
 
@@ -30,8 +31,9 @@ interface TabBarProps {
   messageBadgeCount?: number;
 }
 
-const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeCount = 0 }) => {
+const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeCount }) => {
   const router = useRouter();
+  const { unreadCount } = useNotifications();
 
   const handleCreateClick = () => {
     if (onCreateClick) {
@@ -40,6 +42,8 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
     }
     router.push('/map?create=1');
   };
+
+  const badgeCount = typeof messageBadgeCount === 'number' ? messageBadgeCount : unreadCount;
 
   const tabs: Array<{
     key: TabKey;
@@ -56,7 +60,7 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
 
   const renderTabItem = (tab: (typeof tabs)[number]) => {
     const isActive = activeTab === tab.key;
-    const showBadge = tab.key === 'notifications' && messageBadgeCount > 0;
+    const showBadge = tab.key === 'notifications' && badgeCount > 0;
 
     const Icon = tab.icon;
 
@@ -84,7 +88,7 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onCreateClick, messageBadgeC
           />
           {showBadge && (
             <span style={tabBadgeStyle}>
-              {messageBadgeCount > 9 ? '9+' : messageBadgeCount}
+              {badgeCount > 9 ? '9+' : badgeCount}
             </span>
           )}
         </span>
