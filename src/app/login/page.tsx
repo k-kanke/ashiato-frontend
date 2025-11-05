@@ -13,8 +13,8 @@ const headlineByMode: Record<AuthMode, string> = {
 };
 
 const descriptionByMode: Record<AuthMode, string> = {
-  login: '保存してきた思い出が待っています。認証情報を入力してください。',
-  register: '旅の記録を始めましょう。必要なのはメールアドレスとパスワードだけです。',
+  login: '認証情報を入力してください。',
+  register: 'メールアドレスとパスワードを入力してください。',
 };
 
 export default function LoginPage() {
