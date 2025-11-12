@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 type AuthMode = 'login' | 'register';
 
 const headlineByMode: Record<AuthMode, string> = {
-  login: '足跡にログイン',
+  login: 'ログイン',
   register: '新しい足跡を作成',
 };
 
