@@ -14,7 +14,7 @@ const headlineByMode: Record<AuthMode, string> = {
 
 const descriptionByMode: Record<AuthMode, string> = {
   login: '認証情報を入力してください。',
-  register: 'メールアドレスとパスワードを入力してください。',
+  register: 'メールアドレスとパスワードを入力してください',
 };
 
 export default function LoginPage() {
